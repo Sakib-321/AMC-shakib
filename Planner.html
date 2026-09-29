@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>HSC Smart Study Planner</title>
+
+  <!-- ================= CSS ================= -->
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, "Noto Sans Bengali", sans-serif;
+      background: #f3f6f9;
+      color: #222;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 650px;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #1769aa;
+      margin-bottom: 25px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #bbb;
+      border-radius: 7px;
+    }
+
+    input:focus {
+      outline: 2px solid #1769aa;
+    }
+
+    #addTask {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 7px;
+      background: #1769aa;
+      color: white;
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    #addTask:hover {
+      background: #0d4f82;
+    }
+
+    #message {
+      margin-top: 12px;
+      color: #d32f2f;
+      min-height: 20px;
+    }
+
+    .total {
+      margin-top: 25px;
+      padding: 15px;
+      background: #e8f5e9;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #f1f3f5;
+      border-radius: 8px;
+    }
+
+    .task-info {
+      flex: 1;
+    }
+
+    .delete-btn {
+      border: none;
+      background: #e53935;
+      color: white;
+      padding: 7px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    /* মোবাইলের জন্য */
+    @media (max-width: 500px) {
+      .container {
+        width: 94%;
+        padding: 18px;
+        margin: 20px auto;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      li {
+        align-items: flex-start;
+      }
+    }
+  </style>
+  <!-- =============== CSS শেষ =============== -->
+</head>
+
+<body>
+
+  <!-- ================= HTML ================= -->
+  <main class="container">
+
+    <h1>HSC Smart Study Planner</h1>
+
+    <div class="form-group">
+      <label for="subject">বিষয়ের নাম</label>
+
+      <input
+        type="text"
+        id="subject"
+        placeholder="যেমন: বাংলা"
+        aria-label="বিষয়ের নাম"
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="minutes">পড়ার সময় (মিনিট)</label>
+
+      <input
+        type="number"
+        id="minutes"
+        min="1"
+        placeholder="যেমন: 60"
+        aria-label="পড়ার সময় মিনিটে"
+      >
+    </div>
+
+    <button id="addTask">টাস্ক যোগ করুন</button>
+
+    <p id="message" aria-live="polite"></p>
+
+    <ul id="taskList"></ul>
+
+    <div class="total">
+      মোট পড়ার সময়:
+      <span id="totalMinutes">0</span>
+      মিনিট
+    </div>
+
+  </main>
+  <!-- =============== HTML শেষ =============== -->
+
+
+  <!-- ============== JavaScript ============== -->
+  <script>
+    const subjectInput = document.getElementById("subject");
+    const minutesInput = document.getElementById("minutes");
+    const addButton = document.getElementById("addTask");
+    const taskList = document.getElementById("taskList");
+    const totalMinutes = document.getElementById("totalMinutes");
+    const message = document.getElementById("message");
+
+    let total = 0;
+
+    addButton.addEventListener("click", addTask);
+
+    function addTask() {
+      const subject = subjectInput.value.trim();
+      const minutes = Number(minutesInput.value);
+
+      // খালি ইনপুট যাচাই
+      if (subject === "" || minutesInput.value === "") {
+        message.textContent = "দয়া করে বিষয় ও সময় লিখুন।";
+        return;
+      }
+
+      // শূন্য বা negative সংখ্যা যাচাই
+      if (minutes <= 0) {
+        message.textContent = "সময় অবশ্যই ১ মিনিট বা তার বেশি হতে হবে।";
+        return;
+      }
+
+      // Error message মুছে ফেলা
+      message.textContent = "";
+
+      // নতুন task তৈরি
+      const li = document.createElement("li");
+
+      const taskInfo = document.createElement("span");
+      taskInfo.className = "task-info";
+      taskInfo.textContent =
+        subject + " — " + minutes + " মিনিট";
+
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "delete-btn";
+      deleteButton.textContent = "মুছুন";
+      deleteButton.setAttribute(
+        "aria-label",
+        subject + " টাস্ক মুছুন"
+      );
+
+      deleteButton.addEventListener("click", function() {
+        li.remove();
+
+        total -= minutes;
+        totalMinutes.textContent = total;
+      });
+
+      li.appendChild(taskInfo);
+      li.appendChild(deleteButton);
+
+      taskList.appendChild(li);
+
+      // মোট সময় আপডেট
+      total += minutes;
+      totalMinutes.textContent = total;
+
+      // Input পরিষ্কার
+      subjectInput.value = "";
+      minutesInput.value = "";
+
+      subjectInput.focus();
+    }
+
+    // Enter চাপলে Task যোগ হবে
+    minutesInput.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        addTask();
+      }
+    });
+  </script>
+  <!-- ============ JavaScript শেষ ============ -->
+
+</body>
+</html>
